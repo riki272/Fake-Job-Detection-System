@@ -1,23 +1,17 @@
 import pickle
-import re
+import os
 
-model = pickle.load(open("model.pkl","rb"))
-vectorizer = pickle.load(open("vectorizer.pkl","rb"))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-def clean_text(text):
-    text = text.lower()
-    text = re.sub(r'[^a-zA-Z ]',' ',text)
-    return text
+model = pickle.load(open(os.path.join(BASE_DIR,"model.pkl"),"rb"))
+vectorizer = pickle.load(open(os.path.join(BASE_DIR,"vectorizer.pkl"),"rb"))
 
 def predict_job(text):
 
-    cleaned = clean_text(text)
+    vec = vectorizer.transform([text])
 
-    vector = vectorizer.transform([cleaned])
-
-    prediction = model.predict(vector)[0]
-
-    probability = model.predict_proba(vector)[0][1]
+    prediction = model.predict(vec)[0]
+    probability = model.predict_proba(vec).max()
 
     if prediction == 1:
         result = "Fake Job"
@@ -25,23 +19,3 @@ def predict_job(text):
         result = "Real Job"
 
     return result, probability
-
-
-def detect_suspicious_words(text):
-
-    keywords = [
-        "quick money",
-        "earn fast",
-        "no experience",
-        "work from home",
-        "instant hiring",
-        "easy money"
-    ]
-
-    found = []
-
-    for word in keywords:
-        if word in text.lower():
-            found.append(word)
-
-    return found
